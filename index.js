@@ -5,6 +5,12 @@ const {
   validEmail,
   validPassword,
   tokenGenerator,
+  validName,
+  validAge,
+  validDate,
+  validRate,
+  validTalk,
+  validToken,
 } = require('./middlewares');
 
 const FILE_NAME = './talker.json';
@@ -44,3 +50,21 @@ app.get('/talker/:id', async (request, response) => {
 });
 
 app.post('/login', validEmail, validPassword, tokenGenerator);
+
+app.post('/talker',
+  validToken,
+  validName,
+  validAge,
+  validTalk,
+  validDate,
+  validRate,
+  async (request, response) => {
+    const { name, age, talk } = request.body;
+    const talkers = await fs.readFile(FILE_NAME);
+    const parseTalkers = JSON.parse(talkers);
+    const id = parseTalkers.length + 1;
+    const newTalker = { id, name, age, talk };
+    parseTalkers.push(newTalker);
+    fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
+    return response.status(201).json(newTalker);
+});
