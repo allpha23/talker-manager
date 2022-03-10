@@ -1,6 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs/promises');
+const {
+  validEmail,
+  validPassword,
+  tokenGenerator,
+} = require('./middlewares');
 
 const FILE_NAME = './talker.json';
 
@@ -29,7 +34,6 @@ app.get('/talker/:id', async (request, response) => {
   const { id } = request.params;
   const talkers = await fs.readFile(FILE_NAME);
   const parseTalkers = JSON.parse(talkers);
-  console.log(parseTalkers);
   const talkerId = parseTalkers.find((talker) => talker.id === Number(id));
 
   if (talkerId) {
@@ -38,3 +42,5 @@ app.get('/talker/:id', async (request, response) => {
 
   return response.status(404).json({ message: 'Pessoa palestrante não encontrada' });
 });
+
+app.post('/login', validEmail, validPassword, tokenGenerator);
