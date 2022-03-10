@@ -36,6 +36,23 @@ app.get('/talker', async (request, response) => {
   return response.status(200).json(parseTalkers);
 });
 
+app.get('/talker/search', validToken, async (request, response) => {
+  const { searchTerm } = request.query;
+  const talkers = await fs.readFile(FILE_NAME);
+  const parseTalkers = JSON.parse(talkers);
+  const filterTalkers = parseTalkers.filter((talker) => talker.name.includes(searchTerm));
+  
+  if (!searchTerm) {
+    return response.status(200).json(parseTalkers);
+  }
+  
+  if (filterTalkers.length === 0) {
+    return response.status(200).json([]);
+  }
+  
+  return response.status(200).json(filterTalkers);
+});
+
 app.get('/talker/:id', async (request, response) => {
   const { id } = request.params;
   const talkers = await fs.readFile(FILE_NAME);
@@ -87,6 +104,7 @@ app.put('/talker/:id',
     fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
     return response.status(200).json(newTalker);
 });
+
 
 app.delete('/talker/:id', validToken, async (request, response) => {
   const { id } = request.params;
