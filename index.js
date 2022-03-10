@@ -87,3 +87,12 @@ app.put('/talker/:id',
     fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
     return response.status(200).json(newTalker);
 });
+
+app.delete('/talker/:id', validToken, async (request, response) => {
+  const { id } = request.params;
+  const talkers = await fs.readFile(FILE_NAME);
+  const parseTalkers = JSON.parse(talkers);
+  const deletedTalker = parseTalkers.filter((talker) => talker.id !== Number(id));
+  fs.writeFile(FILE_NAME, JSON.stringify(deletedTalker));
+  return response.status(204).json();
+});
