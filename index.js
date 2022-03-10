@@ -1,17 +1,22 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs/promises');
-const {
-  validEmail,
-  validPassword,
-  tokenGenerator,
-  validName,
-  validAge,
-  validDate,
-  validRate,
-  validTalk,
-  validToken,
-} = require('./middlewares');
+const middlewares = require('./middlewares');
+
+const loginMiddlewares = [
+  middlewares.validEmail,
+  middlewares.validPassword,
+  middlewares.tokenGenerator,
+];
+
+const validationMiddlewares = [
+  middlewares.validToken,
+  middlewares.validName,
+  middlewares.validAge,
+  middlewares.validTalk,
+  middlewares.validDate,
+  middlewares.validRate,
+];
 
 const FILE_NAME = './talker.json';
 
@@ -36,7 +41,7 @@ app.get('/talker', async (request, response) => {
   return response.status(200).json(parseTalkers);
 });
 
-app.get('/talker/search', validToken, async (request, response) => {
+app.get('/talker/search', middlewares.validToken, async (request, response) => {
   const { searchTerm } = request.query;
   const talkers = await fs.readFile(FILE_NAME);
   const parseTalkers = JSON.parse(talkers);
@@ -66,46 +71,32 @@ app.get('/talker/:id', async (request, response) => {
   return response.status(404).json({ message: 'Pessoa palestrante não encontrada' });
 });
 
-app.post('/login', validEmail, validPassword, tokenGenerator);
+app.post('/login', loginMiddlewares);
 
-app.post('/talker',
-  validToken,
-  validName,
-  validAge,
-  validTalk,
-  validDate,
-  validRate,
-  async (request, response) => {
-    const { name, age, talk } = request.body;
-    const talkers = await fs.readFile(FILE_NAME);
-    const parseTalkers = JSON.parse(talkers);
-    const id = parseTalkers.length + 1;
-    const newTalker = { id, name, age, talk };
-    parseTalkers.push(newTalker);
-    fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
-    return response.status(201).json(newTalker);
+app.post('/talker', validationMiddlewares, async (request, response) => {
+  const { name, age, talk } = request.body;
+  const talkers = await fs.readFile(FILE_NAME);
+  const parseTalkers = JSON.parse(talkers);
+  const id = parseTalkers.length + 1;
+  const newTalker = { id, name, age, talk };
+  parseTalkers.push(newTalker);
+  fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
+  return response.status(201).json(newTalker);
 });
 
-app.put('/talker/:id',
-  validToken,
-  validName,
-  validAge,
-  validTalk,
-  validDate,
-  validRate,
-  async (request, response) => {
-    const { name, age, talk } = request.body;
-    const talkers = await fs.readFile(FILE_NAME);
-    const parseTalkers = JSON.parse(talkers);
-    const id = Number(request.params.id);
-    parseTalkers.filter((talker) => talker.id !== id);
-    const newTalker = { id, name, age, talk };
-    parseTalkers.push(newTalker);
-    fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
-    return response.status(200).json(newTalker);
+app.put('/talker/:id', validationMiddlewares, async (request, response) => {
+  const { name, age, talk } = request.body;
+  const talkers = await fs.readFile(FILE_NAME);
+  const parseTalkers = JSON.parse(talkers);
+  const id = Number(request.params.id);
+  parseTalkers.filter((talker) => talker.id !== id);
+  const newTalker = { id, name, age, talk };
+  parseTalkers.push(newTalker);
+  fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
+  return response.status(200).json(newTalker);
 });
 
-app.delete('/talker/:id', validToken, async (request, response) => {
+app.delete('/talker/:id', middlewares.validToken, async (request, response) => {
   const { id } = request.params;
   const talkers = await fs.readFile(FILE_NAME);
   const parseTalkers = JSON.parse(talkers);
