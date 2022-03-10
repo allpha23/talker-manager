@@ -105,7 +105,6 @@ app.put('/talker/:id',
     return response.status(200).json(newTalker);
 });
 
-
 app.delete('/talker/:id', validToken, async (request, response) => {
   const { id } = request.params;
   const talkers = await fs.readFile(FILE_NAME);
