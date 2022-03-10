@@ -68,3 +68,22 @@ app.post('/talker',
     fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
     return response.status(201).json(newTalker);
 });
+
+app.put('/talker/:id',
+  validToken,
+  validName,
+  validAge,
+  validTalk,
+  validDate,
+  validRate,
+  async (request, response) => {
+    const { name, age, talk } = request.body;
+    const talkers = await fs.readFile(FILE_NAME);
+    const parseTalkers = JSON.parse(talkers);
+    const id = Number(request.params.id);
+    parseTalkers.filter((talker) => talker.id !== id);
+    const newTalker = { id, name, age, talk };
+    parseTalkers.push(newTalker);
+    fs.writeFile(FILE_NAME, JSON.stringify(parseTalkers));
+    return response.status(200).json(newTalker);
+});
